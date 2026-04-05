@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>천진수학 — 원장 대시보드</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --navy:#0f2044;--blue:#1d4ed8;--blue2:#3b82f6;
+  --green:#059669;--green2:#10b981;--green-lt:#f0fdf4;--green-mid:#dcfce7;
+  --amber:#d97706;--amber-lt:#fffbeb;--amber-mid:#fef3c7;
+  --red:#dc2626;--red-lt:#fef2f2;
+  --purple:#7c3aed;
+  --gray:#6b7280;--gray-lt:#f9fafb;--gray-md:#e5e7eb;--gray-dk:#374151;
+  --font:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:#f0f4f8;color:var(--gray-dk);min-height:100vh}
+
+/* 헤더 */
+.header{background:var(--navy);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.logo{font-size:18px;font-weight:900}.logo span{color:#60a5fa}
+.header-right{font-size:12px;color:rgba(255,255,255,.5)}
+#last-updated{color:rgba(255,255,255,.8)}
+
+.wrap{max-width:900px;margin:0 auto;padding:16px}
+
+/* 필터 바 */
+.filter-bar{background:#fff;border-radius:12px;border:1px solid var(--gray-md);padding:14px 16px;margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.filter-bar select,.filter-bar input{border:1.5px solid var(--gray-md);border-radius:8px;padding:7px 10px;font-family:var(--font);font-size:13px;color:var(--gray-dk);background:var(--gray-lt);outline:none}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--blue2)}
+.filter-label{font-size:12px;color:var(--gray);font-weight:700}
+.refresh-btn{margin-left:auto;padding:8px 16px;border-radius:8px;border:1.5px solid var(--gray-md);background:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);color:var(--gray-dk)}
+.refresh-btn:hover{background:var(--gray-lt);border-color:var(--blue2);color:var(--blue)}
+
+/* 요약 카드 */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.sum-card{background:#fff;border-radius:12px;border:1px solid var(--gray-md);padding:14px 16px}
+.sum-label{font-size:11px;color:var(--gray);font-weight:700;margin-bottom:6px;letter-spacing:.04em}
+.sum-val{font-size:26px;font-weight:900;color:var(--navy)}
+.sum-sub{font-size:11px;color:var(--gray);margin-top:2px}
+
+/* 섹션 카드 */
+.section-card{background:#fff;border-radius:12px;border:1px solid var(--gray-md);padding:16px;margin-bottom:16px}
+.section-title{font-size:14px;font-weight:700;color:var(--gray-dk);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-title span{font-size:12px;color:var(--gray);font-weight:400}
+
+/* 테이블 */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{text-align:left;padding:8px 10px;font-size:11px;font-weight:700;color:var(--gray);border-bottom:2px solid var(--gray-md);letter-spacing:.04em;white-space:nowrap}
+.data-table td{padding:9px 10px;border-bottom:1px solid var(--gray-md);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--gray-lt)}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.pill-green{background:var(--green-mid);color:var(--green)}
+.pill-amber{background:var(--amber-mid);color:var(--amber)}
+.pill-red{background:var(--red-lt);color:var(--red)}
+.pill-blue{background:#dbeafe;color:var(--blue)}
+
+/* 학생별 카드 */
+.student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.student-card{background:#fff;border-radius:12px;border:1px solid var(--gray-md);padding:14px 16px}
+.student-name{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.stat-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--gray);margin-bottom:6px}
+.stat-val{font-weight:700;color:var(--gray-dk)}
+.mini-bar{height:5px;background:var(--gray-md);border-radius:3px;overflow:hidden;margin-top:4px}
+.mini-fill{height:100%;border-radius:3px;background:var(--green2);transition:width .4s}
+
+/* 차트 */
+.chart-wrap{position:relative;width:100%}
+.chart-h240{height:240px}
+.chart-h200{height:200px}
+
+/* 빈 상태 */
+.empty{text-align:center;padding:40px 20px;color:var(--gray);font-size:14px}
+.empty-icon{font-size:40px;margin-bottom:10px}
+
+/* 설정 */
+.cfg-box{background:#fff;border-radius:12px;border:1px solid var(--gray-md);padding:16px;margin-bottom:16px}
+.cfg-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.cfg-input{flex:1;min-width:200px;border:1.5px solid var(--gray-md);border-radius:8px;padding:8px 12px;font-family:var(--font);font-size:13px;color:var(--gray-dk);background:var(--gray-lt);outline:none}
+.cfg-input:focus{border-color:var(--blue2)}
+.cfg-btn{padding:9px 18px;border-radius:8px;border:none;background:var(--navy);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)}
+
+/* 로딩 */
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;z-index:999;font-size:15px;color:var(--gray);flex-direction:column;gap:12px}
+.spinner{width:28px;height:28px;border:3px solid var(--gray-md);border-top-color:var(--blue2);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:480px){.filter-bar{flex-direction:column;align-items:stretch}.refresh-btn{margin-left:0}}
+</style>
+</head>
+<body>
+
+<div id="loading-overlay" class="loading-overlay">
+  <div class="spinner"></div>
+  <div>데이터 불러오는 중...</div>
+</div>
+
+<!-- 헤더 -->
+<div class="header">
+  <div class="logo">천진<span>수학</span> <span style="font-size:13px;font-weight:400;color:rgba(255,255,255,.6)">원장 대시보드</span></div>
+  <div class="header-right">마지막 업데이트: <span id="last-updated">-</span></div>
+</div>
+
+<div class="wrap">
+
+  <!-- GitHub 저장소 설정 -->
+  <div class="cfg-box" id="cfg-box">
+    <div style="font-size:13px;font-weight:700;color:var(--gray-dk);margin-bottom:10px">🔗 GitHub 저장소 설정</div>
+    <div class="cfg-row">
+      <input class="cfg-input" id="cfg-owner" placeholder="GitHub 아이디 (예: teacher-kim)">
+      <input class="cfg-input" id="cfg-repo"  placeholder="저장소 이름 (예: chunjin-data)">
+      <button class="cfg-btn" onclick="saveAndLoad()">저장 후 불러오기</button>
+    </div>
+    <div style="font-size:11px;color:var(--gray);margin-top:8px">설정은 이 브라우저에 저장됩니다. GitHub Pages로 배포 시 아래 <code>GITHUB_OWNER</code>와 <code>GITHUB_REPO</code> 변수를 직접 수정하면 설정 없이 바로 연결됩니다.</div>
+  </div>
+
+  <!-- 필터 -->
+  <div class="filter-bar">
+    <span class="filter-label">학생</span>
+    <select id="filter-student" onchange="render()">
+      <option value="">전체</option>
+    </select>
+    <span class="filter-label">기간</span>
+    <input type="date" id="filter-from" onchange="render()">
+    <span style="font-size:12px;color:var(--gray)">~</span>
+    <input type="date" id="filter-to" onchange="render()">
+    <button class="refresh-btn" onclick="loadData()">↻ 새로고침</button>
+  </div>
+
+  <!-- 요약 -->
+  <div class="summary-grid">
+    <div class="sum-card">
+      <div class="sum-label">총 제출 수</div>
+      <div class="sum-val" id="sum-total">0</div>
+      <div class="sum-sub">건</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">참여 학생</div>
+      <div class="sum-val" id="sum-students">0</div>
+      <div class="sum-sub">명</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">평균 숙제 완성도</div>
+      <div class="sum-val" id="sum-hw">0%</div>
+      <div class="sum-sub">필터 기준</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">평균 수학 시간</div>
+      <div class="sum-val" id="sum-min">0분</div>
+      <div class="sum-sub">필터 기준</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">천진 3제 완료율</div>
+      <div class="sum-val" id="sum-jeje">0%</div>
+      <div class="sum-sub">3/3 완성 비율</div>
+    </div>
+  </div>
+
+  <!-- 학생별 현황 -->
+  <div class="section-card">
+    <div class="section-title">👩‍🎓 학생별 현황</div>
+    <div class="student-grid" id="student-grid">
+      <div class="empty"><div class="empty-icon">📭</div>데이터가 없습니다</div>
+    </div>
+  </div>
+
+  <!-- 최근 제출 테이블 -->
+  <div class="section-card">
+    <div class="section-title">📋 최근 제출 내역 <span>(최신순)</span></div>
+    <div style="overflow-x:auto">
+      <table class="data-table" id="records-table">
+        <thead><tr>
+          <th>날짜</th><th>학생</th><th>구분</th><th>단원</th>
+          <th>숙제</th><th>수학(분)</th><th>시간완수</th><th>천진3제</th>
+        </tr></thead>
+        <tbody id="records-body">
+          <tr><td colspan="8" class="empty">데이터가 없습니다</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 차트: 숙제 완성도 추이 -->
+  <div class="section-card">
+    <div class="section-title">📈 숙제 완성도 추이</div>
+    <div class="chart-wrap chart-h240"><canvas id="chart-hw"></canvas></div>
+  </div>
+
+  <!-- 차트: 수학 공부 시간 추이 -->
+  <div class="section-card">
+    <div class="section-title">⏱ 수학 공부 시간 추이 (분)</div>
+    <div class="chart-wrap chart-h240"><canvas id="chart-min"></canvas></div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+// ── GitHub 저장소 설정 ────────────────────────────
+// GitHub Pages에 직접 배포할 경우 아래 두 줄을 수정하세요
+const DEFAULT_OWNER = '';
+const DEFAULT_REPO  = '';
+
+let OWNER = localStorage.getItem('cj_owner') || DEFAULT_OWNER;
+let REPO  = localStorage.getItem('cj_repo')  || DEFAULT_REPO;
+
+let ALL_RECORDS = [];
+let chartHw = null, chartMin = null;
+
+// ── 초기화 ──────────────────────────────────────
+window.addEventListener('load', () => {
+  document.getElementById('cfg-owner').value = OWNER;
+  document.getElementById('cfg-repo').value  = REPO;
+
+  // 기간 기본값: 최근 30일
+  const today = new Date().toISOString().slice(0,10);
+  const past  = new Date(Date.now()-30*24*60*60*1000).toISOString().slice(0,10);
+  document.getElementById('filter-from').value = past;
+  document.getElementById('filter-to').value   = today;
+
+  if(OWNER && REPO) loadData();
+  else hideLoading();
+});
+
+function saveAndLoad(){
+  OWNER = document.getElementById('cfg-owner').value.trim();
+  REPO  = document.getElementById('cfg-repo').value.trim();
+  localStorage.setItem('cj_owner', OWNER);
+  localStorage.setItem('cj_repo',  REPO);
+  loadData();
+}
+
+// ── 데이터 로드 ──────────────────────────────────
+async function loadData(){
+  if(!OWNER || !REPO){ hideLoading(); return; }
+  showLoading();
+
+  try{
+    const url = `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/data/summary.json`;
+    const res = await fetch(url + '?t=' + Date.now()); // 캐시 방지
+    if(!res.ok) throw new Error('summary.json 없음');
+    const data = await res.json();
+    ALL_RECORDS = data.records || [];
+    document.getElementById('last-updated').textContent =
+      data.updated_at ? new Date(data.updated_at).toLocaleString('ko-KR') : '-';
+    buildStudentFilter();
+    render();
+  } catch(e){
+    console.error(e);
+    ALL_RECORDS = [];
+    render();
+    alert('데이터를 불러오지 못했습니다.\nGitHub 저장소 설정과 summary.json 파일을 확인하세요.');
+  } finally {
+    hideLoading();
+  }
+}
+
+// ── 필터 적용 ────────────────────────────────────
+function getFiltered(){
+  const student = document.getElementById('filter-student').value;
+  const from    = document.getElementById('filter-from').value;
+  const to      = document.getElementById('filter-to').value;
+  return ALL_RECORDS.filter(r => {
+    if(student && r.student !== student) return false;
+    if(from && r.date < from) return false;
+    if(to   && r.date > to)   return false;
+    return true;
+  });
+}
+
+function buildStudentFilter(){
+  const sel = document.getElementById('filter-student');
+  const prev = sel.value;
+  const students = [...new Set(ALL_RECORDS.map(r=>r.student))].sort();
+  sel.innerHTML = '<option value="">전체</option>' +
+    students.map(s=>`<option value="${s}">${s}</option>`).join('');
+  if(prev) sel.value = prev;
+}
+
+// ── 렌더링 ───────────────────────────────────────
+function render(){
+  const records = getFiltered();
+
+  // 요약 카드
+  const students = [...new Set(records.map(r=>r.student))];
+  document.getElementById('sum-total').textContent    = records.length;
+  document.getElementById('sum-students').textContent = students.length;
+
+  const hwPcts = records.map(r=>parseInt(r.hw_pct)||0);
+  const avgHw  = hwPcts.length ? Math.round(hwPcts.reduce((a,b)=>a+b,0)/hwPcts.length) : 0;
+  document.getElementById('sum-hw').textContent = avgHw+'%';
+
+  const mins    = records.map(r=>parseInt(r.math_min)||0);
+  const avgMin  = mins.length ? Math.round(mins.reduce((a,b)=>a+b,0)/mins.length) : 0;
+  document.getElementById('sum-min').textContent = avgMin+'분';
+
+  const jejeDone = records.filter(r=>r.jeje==='3/3 완성').length;
+  const jejeRate = records.length ? Math.round(jejeDone/records.length*100) : 0;
+  document.getElementById('sum-jeje').textContent = jejeRate+'%';
+
+  renderStudentGrid(records, students);
+  renderTable(records);
+  renderCharts(records, students);
+}
+
+// 학생별 카드
+function renderStudentGrid(records, students){
+  const grid = document.getElementById('student-grid');
+  if(!students.length){
+    grid.innerHTML = '<div class="empty"><div class="empty-icon">📭</div>데이터가 없습니다</div>';
+    return;
+  }
+  grid.innerHTML = students.map(s => {
+    const sr   = records.filter(r=>r.student===s);
+    const hwAvg= sr.length ? Math.round(sr.map(r=>parseInt(r.hw_pct)||0).reduce((a,b)=>a+b,0)/sr.length) : 0;
+    const minAvg=sr.length ? Math.round(sr.map(r=>parseInt(r.math_min)||0).reduce((a,b)=>a+b,0)/sr.length) : 0;
+    const jRate = sr.length ? Math.round(sr.filter(r=>r.jeje==='3/3 완성').length/sr.length*100) : 0;
+    const last  = sr[0]; // 최신순
+    const hwColor = hwAvg>=80?'var(--green)':hwAvg>=50?'var(--amber)':'var(--red)';
+    return `<div class="student-card">
+      <div class="student-name">
+        <span style="width:32px;height:32px;border-radius:50%;background:#dbeafe;color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">${s.slice(0,1)}</span>
+        ${s}
+        <span style="margin-left:auto;font-size:11px;color:var(--gray)">${sr.length}회</span>
+      </div>
+      <div class="stat-row">
+        <span>숙제 평균</span>
+        <span class="stat-val" style="color:${hwColor}">${hwAvg}%</span>
+      </div>
+      <div class="mini-bar"><div class="mini-fill" style="width:${hwAvg}%;background:${hwColor}"></div></div>
+      <div style="height:8px"></div>
+      <div class="stat-row"><span>수학 평균</span><span class="stat-val">${minAvg}분</span></div>
+      <div class="stat-row"><span>천진 3제 완료율</span><span class="stat-val">${jRate}%</span></div>
+      ${last ? `<div class="stat-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--gray-md)"><span>최근 제출</span><span class="stat-val">${last.date}</span></div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// 테이블
+function renderTable(records){
+  const body = document.getElementById('records-body');
+  if(!records.length){
+    body.innerHTML='<tr><td colspan="8" class="empty">데이터가 없습니다</td></tr>';
+    return;
+  }
+  body.innerHTML = records.slice(0,50).map(r => {
+    const hwPct = parseInt(r.hw_pct)||0;
+    const hwClass = hwPct>=100?'pill-green':hwPct>=50?'pill-amber':'pill-red';
+    const jejeClass = r.jeje==='3/3 완성'?'pill-green':'pill-amber';
+    const timeClass = r.time_ok==='O'?'pill-green':'pill-red';
+    return `<tr>
+      <td style="white-space:nowrap">${r.date}</td>
+      <td style="font-weight:700">${r.student}</td>
+      <td><span class="pill ${r.daytype==='수업일'?'pill-blue':'pill-amber'}">${r.daytype}</span></td>
+      <td style="color:var(--gray);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.unit||'-'}</td>
+      <td><span class="pill ${hwClass}">${r.hw_done||'-'} (${r.hw_pct||'0%'})</span></td>
+      <td style="text-align:center">${parseInt(r.math_min)||0}</td>
+      <td><span class="pill ${timeClass}">${r.time_ok||'-'}</span></td>
+      <td><span class="pill ${jejeClass}">${r.jeje||'-'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// 차트
+function renderCharts(records, students){
+  // 날짜 오름차순 정렬
+  const sorted = [...records].sort((a,b)=>a.date.localeCompare(b.date));
+  const COLORS = ['#1d4ed8','#059669','#d97706','#7c3aed','#dc2626','#0891b2','#65a30d'];
+
+  // 숙제 완성도 차트 (학생별 라인)
+  const hwCtx = document.getElementById('chart-hw').getContext('2d');
+  if(chartHw) chartHw.destroy();
+
+  if(students.length <= 1){
+    // 단일 학생 또는 전체를 날짜별 라인
+    const dates = [...new Set(sorted.map(r=>r.date))];
+    const datasets = students.length
+      ? students.map((s,i) => ({
+          label: s,
+          data: dates.map(d => {
+            const r = sorted.find(r=>r.date===d && r.student===s);
+            return r ? parseInt(r.hw_pct)||0 : null;
+          }),
+          borderColor: COLORS[i%COLORS.length],
+          backgroundColor: COLORS[i%COLORS.length]+'22',
+          tension: 0.3, fill: true, spanGaps: true,
+        }))
+      : [{ label:'전체 평균', data: dates.map(d=>{
+          const dr = sorted.filter(r=>r.date===d);
+          return dr.length ? Math.round(dr.map(r=>parseInt(r.hw_pct)||0).reduce((a,b)=>a+b,0)/dr.length) : null;
+        }), borderColor:'#1d4ed8', backgroundColor:'#1d4ed822', tension:0.3, fill:true, spanGaps:true }];
+    chartHw = new Chart(hwCtx, {
+      type:'line', data:{ labels:dates, datasets },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display: students.length > 1 } }, scales:{ y:{ min:0, max:100, ticks:{ callback:v=>v+'%' } } } }
+    });
+  } else {
+    const dates = [...new Set(sorted.map(r=>r.date))];
+    chartHw = new Chart(hwCtx, {
+      type:'line',
+      data:{ labels:dates, datasets: students.map((s,i)=>({
+        label: s,
+        data: dates.map(d=>{ const r=sorted.find(r=>r.date===d&&r.student===s); return r?parseInt(r.hw_pct)||0:null; }),
+        borderColor: COLORS[i%COLORS.length], backgroundColor: COLORS[i%COLORS.length]+'22',
+        tension:0.3, fill:false, spanGaps:true,
+      })) },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:true } }, scales:{ y:{ min:0, max:100, ticks:{ callback:v=>v+'%' } } } }
+    });
+  }
+
+  // 수학 공부 시간 차트 (막대)
+  const minCtx = document.getElementById('chart-min').getContext('2d');
+  if(chartMin) chartMin.destroy();
+  const dates2 = [...new Set(sorted.map(r=>r.date))];
+  chartMin = new Chart(minCtx, {
+    type:'bar',
+    data:{ labels:dates2, datasets: students.length
+      ? students.map((s,i)=>({
+          label: s,
+          data: dates2.map(d=>{ const r=sorted.find(r=>r.date===d&&r.student===s); return r?parseInt(r.math_min)||0:0; }),
+          backgroundColor: COLORS[i%COLORS.length]+'bb',
+        }))
+      : [{ label:'전체 평균', data: dates2.map(d=>{
+          const dr=sorted.filter(r=>r.date===d);
+          return dr.length?Math.round(dr.map(r=>parseInt(r.math_min)||0).reduce((a,b)=>a+b,0)/dr.length):0;
+        }), backgroundColor:'#1d4ed8bb' }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:students.length>1 } }, scales:{ x:{ stacked:false }, y:{ min:0, ticks:{ callback:v=>v+'분' } } } }
+  });
+}
+
+function showLoading(){ document.getElementById('loading-overlay').style.display='flex'; }
+function hideLoading(){ document.getElementById('loading-overlay').style.display='none'; }
+</script>
+</body>
+</html>

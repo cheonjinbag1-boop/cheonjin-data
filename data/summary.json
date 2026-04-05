@@ -1,0 +1,19 @@
+{
+  "updated_at": "2026-04-05T00:31:00.876Z",
+  "records": [
+    {
+      "date": "2026-04-05",
+      "student": "이정민",
+      "daytype": "자습일",
+      "unit": "다항식",
+      "hw_done": "완성",
+      "hw_pct": "0%",
+      "math_min": "60분",
+      "total_min": "250분",
+      "jeje": "3/3 완성",
+      "time_ok": "X",
+      "memo": "3번이 너무 어려워요",
+      "submitted_at": "2026-04-05T00:31:00.876Z"
+    }
+  ]
+}

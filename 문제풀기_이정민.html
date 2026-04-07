@@ -495,6 +495,7 @@ body{font-family:var(--font);background:#f0f4f8;color:var(--gray-dk);min-height:
 
 <script>
 /* ══ 상태 ══════════════════════════════════════════ */
+if(typeof PRESET_Q==='undefined') var PRESET_Q=null;
 let Qs = JSON.parse(localStorage.getItem('cjQ')||'[]');
 let Rs = JSON.parse(localStorage.getItem('cjR')||'[]');
 let curQ=null, a1='', a2='', v1='', v2='', t0=0, solDone=false, filt='all';
@@ -1030,7 +1031,44 @@ window.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('api-key').addEventListener('change',function(){ save('apikey',this.value.trim()); });
   document.getElementById('sheet-url').addEventListener('change',function(){ save('sheet_url',this.value.trim()); });
 
-  // URL 파라미터로 특정 문제 직접 열기
+  // ── 원장 배포 문제 처리 (PRESET_Q 또는 URL qdata 파라미터) ──
+  let presetQ = null;
+
+  // 1) URL qdata 파라미터로 전달된 문제
+  const qdataParam = new URLSearchParams(location.search).get('qdata');
+  if(qdataParam){
+    try{
+      presetQ = JSON.parse(decodeURIComponent(escape(atob(qdataParam))));
+    }catch(e){}
+  }
+
+  // 2) 파일에 직접 주입된 PRESET_Q
+  if(!presetQ && typeof PRESET_Q !== 'undefined' && PRESET_Q){
+    presetQ = PRESET_Q;
+  }
+
+  // 3) PRESET_Q가 있으면 바로 문제 표시
+  if(presetQ){
+    // Qs에 없으면 추가
+    presetQ.id = presetQ.id || Date.now();
+    if(!Qs.find(x=>x.id===presetQ.id)) Qs.push(presetQ);
+
+    // 학생 이름 자동 입력 (파일에 고정된 이름)
+    const studentName = document.getElementById('sel-name').value.trim();
+
+    goView('select');
+    document.getElementById('sel-list').innerHTML=`
+      <div style="background:var(--blue-lt);border:1.5px solid var(--blue-mid);border-radius:11px;padding:14px;margin-bottom:12px">
+        <div style="font-size:12px;color:var(--blue);font-weight:700;margin-bottom:4px">📚 오늘의 문제 — ${presetQ.unit} · ${presetQ.diff}</div>
+        <div style="font-size:13px;color:var(--gray-dk);line-height:1.75;white-space:pre-wrap">${presetQ.content.slice(0,120)}${presetQ.content.length>120?'…':''}</div>
+      </div>
+      <button class="btn btn-blue btn-w" onclick="directStart(${presetQ.id})">
+        <span class="bt">문제 풀기 시작 →</span>
+      </button>`;
+    return;
+  }
+
+  // URL 파라미터로 특정 문제 직접 열기 (기존 방식)
   const qId=new URLSearchParams(location.search).get('q');
   if(qId){
     const q=Qs.find(x=>x.id===parseInt(qId));

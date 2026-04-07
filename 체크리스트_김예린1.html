@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>천진수학 — 김예린1 체크리스트</title>
+<style>
+:root{
+  --navy:#0f2044;--blue:#1d4ed8;--blue2:#3b82f6;--blue3:#60a5fa;
+  --blue-lt:#eff6ff;--blue-mid:#dbeafe;
+  --green:#059669;--green2:#10b981;--green-lt:#f0fdf4;--green-mid:#dcfce7;
+  --amber:#d97706;--amber2:#f59e0b;--amber-lt:#fffbeb;--amber-mid:#fef3c7;
+  --red:#dc2626;--red-lt:#fef2f2;--red-mid:#fecaca;
+  --purple:#7c3aed;--purple-lt:#faf5ff;--purple-mid:#ede9fe;
+  --gray:#6b7280;--gray-lt:#f9fafb;--gray-md:#e5e7eb;--gray-dk:#374151;
+  --font:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+  --mono:'Consolas','Courier New',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:#f0f4f8;color:var(--gray-dk);min-height:100vh;padding-bottom:60px}
+
+.app-header{background:var(--navy);color:#fff;padding:14px 18px 12px;position:sticky;top:0;z-index:100}
+.ah-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.ah-logo{font-size:15px;font-weight:900;letter-spacing:-.02em}
+.ah-logo span{color:#60a5fa}
+.ah-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
+.dt-lesson{background:rgba(16,185,129,.25);color:#6ee7b7}
+.dt-self{background:rgba(59,130,246,.25);color:#93c5fd}
+.ah-info{font-size:12px;color:rgba(255,255,255,.55);display:flex;gap:8px;align-items:center}
+.ah-student{font-weight:700;color:#fff}
+
+.progress-bar{background:rgba(0,0,0,.2);padding:8px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.06)}
+.pb-label{font-size:10px;color:rgba(255,255,255,.5);white-space:nowrap}
+.pb-track{flex:1;height:5px;background:rgba(255,255,255,.15);border-radius:3px;overflow:hidden}
+.pb-fill{height:100%;border-radius:3px;background:var(--green2);transition:width .3s}
+.pb-pct{font-size:11px;font-weight:700;color:#fff;min-width:28px;text-align:right;font-family:var(--mono)}
+
+.wrap{max-width:500px;margin:0 auto;padding:14px}
+
+.card{background:#fff;border-radius:14px;border:1px solid var(--gray-md);margin-bottom:12px;overflow:hidden}
+.card-head{padding:11px 16px;border-bottom:1px solid var(--gray-md);display:flex;align-items:center;gap:8px;background:var(--gray-lt)}
+.ch-num{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.ch-title{font-size:13px;font-weight:700;color:var(--gray-dk)}
+.ch-req{font-size:10px;color:var(--red);font-weight:600;margin-left:4px}
+.ch-badge{margin-left:auto;font-size:10px;font-weight:600;padding:2px 8px;border-radius:12px;background:var(--blue-mid);color:var(--blue)}
+.card-body{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+
+.slider-row{display:flex;align-items:center;gap:10px}
+.slider-lbl{font-size:11px;color:var(--gray);white-space:nowrap}
+input[type=range]{flex:1;-webkit-appearance:none;height:6px;border-radius:3px;background:var(--gray-md);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--blue2);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.slider-val{font-size:16px;font-weight:700;min-width:46px;text-align:center;color:var(--blue);font-family:var(--mono)}
+
+.big-check{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:10px;background:var(--gray-lt);border:2px solid transparent;cursor:pointer;transition:all .15s;user-select:none;-webkit-tap-highlight-color:transparent}
+.big-check.on{background:var(--green-lt);border-color:var(--green-mid)}
+.bc-box{width:24px;height:24px;border-radius:6px;border:2px solid var(--gray-md);background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.big-check.on .bc-box{background:var(--green);border-color:var(--green)}
+.bc-check{font-size:13px;color:#fff;opacity:0;transition:opacity .1s}
+.big-check.on .bc-check{opacity:1}
+.bc-text{font-size:13px;color:var(--gray-dk);line-height:1.4;flex:1}
+.bc-tag{font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;white-space:nowrap;flex-shrink:0}
+
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:11px;font-weight:700;color:var(--gray);letter-spacing:.04em;text-transform:uppercase}
+.field input,.field select,.field textarea{
+  background:var(--gray-lt);border:1.5px solid var(--gray-md);color:var(--gray-dk);
+  font-family:var(--font);font-size:13px;padding:9px 12px;border-radius:9px;outline:none;
+  transition:border-color .15s;-webkit-appearance:none
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue2)}
+.field textarea{min-height:64px;resize:vertical}
+.field select option{background:#fff}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.submit-card{background:#fff;border-radius:14px;border:1px solid var(--gray-md);padding:16px;margin-bottom:12px}
+.submit-btn{width:100%;padding:15px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.submit-btn:hover{opacity:.92}
+.submit-btn:active{transform:scale(.99)}
+.submit-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.submit-btn .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.submit-btn.loading .spinner{display:block}
+.submit-btn.loading .btn-text{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.done-wrap{display:none;padding:32px 20px;text-align:center;background:#fff;border-radius:14px;border:1px solid var(--gray-md);margin-bottom:12px}
+.done-wrap.show{display:block}
+.done-icon{font-size:52px;margin-bottom:14px}
+.done-title{font-size:22px;font-weight:900;color:var(--navy);margin-bottom:8px}
+.done-msg{font-size:14px;color:var(--gray);line-height:1.7;margin-bottom:20px}
+.done-table{width:100%;border-collapse:collapse;text-align:left;font-size:13px;margin-bottom:20px}
+.done-table tr{border-bottom:1px solid var(--gray-md)}
+.done-table tr:last-child{border-bottom:none}
+.done-table td{padding:8px 6px}
+.done-table td:first-child{color:var(--gray);width:120px}
+.done-table td:last-child{font-weight:700}
+.done-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.done-btn{padding:10px 20px;border-radius:9px;border:1.5px solid var(--gray-md);background:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);color:var(--gray-dk);transition:all .12s}
+.done-btn:hover{background:var(--gray-lt);border-color:var(--blue2);color:var(--blue)}
+.done-btn.kakao{background:#FEE500;border-color:#FEE500;color:#191919}
+
+.cfg-panel{background:#fff;border-radius:14px;border:1px solid var(--gray-md);margin-bottom:12px;overflow:hidden}
+.cfg-head{padding:12px 16px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.cfg-title{font-size:13px;font-weight:700}
+.cfg-arrow{font-size:11px;color:rgba(255,255,255,.5);transition:transform .2s}
+.cfg-arrow.open{transform:rotate(180deg)}
+.cfg-body{display:none;padding:16px;flex-direction:column;gap:12px}
+.cfg-body.open{display:flex}
+.cfg-save-btn{width:100%;padding:10px;border-radius:9px;border:none;background:var(--navy);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)}
+
+/* GitHub 연동 안내 박스 */
+.gh-guide{background:var(--green-lt);border:1px solid var(--green-mid);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--green);line-height:1.7}
+.gh-guide strong{color:var(--green);display:block;margin-bottom:4px;font-size:13px}
+.gh-guide code{background:rgba(5,150,105,.1);padding:1px 5px;border-radius:3px;font-family:var(--mono);font-size:11px}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--gray-dk);color:#fff;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:600;opacity:0;transition:all .25s;pointer-events:none;z-index:999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:380px){.two-col{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="ah-top">
+    <div class="ah-logo">천진<span>수학</span></div>
+    <div class="ah-badge dt-self" id="day-badge">자습일</div>
+  </div>
+  <div class="progress-bar" style="padding:6px 0 0;background:none;border:none">
+    <span class="pb-label">진행률</span>
+    <div class="pb-track"><div class="pb-fill" id="pb-fill" style="width:0%"></div></div>
+    <span class="pb-pct" id="pb-pct">0%</span>
+  </div>
+  <div class="ah-info" style="margin-top:4px">
+    <span class="ah-student" id="hdr-name">학생</span>
+    <span>·</span>
+    <span id="hdr-date"></span>
+    <span>·</span>
+    <span id="hdr-unit"></span>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ══ 설정 패널 ══ -->
+<div class="cfg-panel">
+  <div class="cfg-head" onclick="toggleCfg()">
+    <span class="cfg-title">⚙️ 원장 설정</span>
+    <span class="cfg-arrow" id="cfg-arrow">▾</span>
+  </div>
+  <div class="cfg-body" id="cfg-body">
+    <div class="two-col">
+      <div class="field"><label>학생 이름</label>
+        <input type="text" id="cfg-name" placeholder="김예린1">
+      </div>
+      <div class="field"><label>날짜</label>
+        <input type="date" id="cfg-date">
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>수업 구분</label>
+        <select id="cfg-type">
+          <option value="self" selected>자습일</option>
+          <option value="lesson">수업일</option>
+        </select>
+      </div>
+      <div class="field"><label>학습 단원</label>
+        <input type="text" id="cfg-unit" placeholder="예: 다항식">
+      </div>
+    </div>
+    <div class="field"><label>오늘 숙제</label>
+      <input type="text" id="cfg-hw" placeholder="예: 올림포스 유형편 p.45~52 1~20번">
+    </div>
+    <div class="field"><label>오늘 천진 3제</label>
+      <input type="text" id="cfg-jeje" placeholder="예: 항등식 수치대입법 유형 3문제">
+    </div>
+
+    <div style="border-top:1px solid var(--gray-md);padding-top:12px">
+      <div class="gh-guide">
+        <strong>🔗 GitHub 자동 저장 설정</strong>
+        Cloudflare Workers를 배포한 후 아래에 URL을 입력하세요.<br>
+        학생이 제출할 때마다 GitHub에 자동으로 데이터가 저장됩니다.<br>
+        <code>https://your-worker.workers.dev</code>
+      </div>
+      <div class="field" style="margin-top:10px"><label>Workers URL</label>
+        <input type="text" id="cfg-worker-url" placeholder="https://chunjin-worker.your-id.workers.dev">
+      </div>
+    </div>
+
+    <button class="cfg-save-btn" onclick="saveCfg()">💾 설정 저장</button>
+  </div>
+</div>
+
+<!-- ══ 체크리스트 폼 ══ -->
+<div id="form-wrap">
+
+  <!-- ① 숙제 완성 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="ch-num" style="background:var(--blue)">1</div>
+      <div class="ch-title">숙제 완성</div><span class="ch-req">필수</span>
+      <span class="ch-badge" id="hw-badge-disp"></span>
+    </div>
+    <div class="card-body">
+      <div class="big-check" id="hw-check" onclick="toggleBig(this,'hw_done')">
+        <div class="bc-box"><span class="bc-check">✓</span></div>
+        <div class="bc-text" id="hw-text-disp">오늘 숙제를 완성했다</div>
+        <span class="bc-tag" style="background:var(--blue-mid);color:var(--blue)">완성</span>
+      </div>
+      <div class="field">
+        <label>완성도 (%)</label>
+        <div class="slider-row">
+          <span class="slider-lbl">0%</span>
+          <input type="range" id="hw-pct" min="0" max="100" step="10" value="0"
+            oninput="onPct(this.value)">
+          <span class="slider-lbl">100%</span>
+          <span class="slider-val" id="hw-pct-val">0%</span>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="field">
+          <label>푼 문제 수</label>
+          <input type="number" id="hw-solved" placeholder="15" min="0" oninput="updateProg()">
+        </div>
+        <div class="field">
+          <label>전체 문제 수</label>
+          <input type="number" id="hw-total" placeholder="20" min="0" oninput="updateProg()">
+        </div>
+      </div>
+      <div class="field">
+        <label>미완성 이유 / 막힌 문제 번호</label>
+        <input type="text" id="hw-reason" placeholder="예: 7번, 13번 막힘 — 공식 선택 모르겠음" oninput="updateProg()">
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 공부 시간 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="ch-num" style="background:var(--amber)">2</div>
+      <div class="ch-title">공부 시간 기록</div><span class="ch-req">필수</span>
+    </div>
+    <div class="card-body">
+      <div class="field">
+        <label>수학 공부 시간 (분)</label>
+        <div class="slider-row">
+          <span class="slider-lbl">0</span>
+          <input type="range" id="math-min" min="0" max="240" step="10" value="0"
+            oninput="document.getElementById('math-min-val').textContent=this.value+'분';updateProg()">
+          <span class="slider-lbl">240분</span>
+          <span class="slider-val" id="math-min-val">0분</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>전체 공부 시간 (분)</label>
+        <div class="slider-row">
+          <span class="slider-lbl">0</span>
+          <input type="range" id="total-min" min="0" max="360" step="10" value="0"
+            oninput="document.getElementById('total-min-val').textContent=this.value+'분';updateProg()">
+          <span class="slider-lbl">360분</span>
+          <span class="slider-val" id="total-min-val">0분</span>
+        </div>
+      </div>
+      <div class="big-check" id="time-check" onclick="toggleBig(this,'time_ok')">
+        <div class="bc-box"><span class="bc-check">✓</span></div>
+        <div class="bc-text">계획한 공부 시간을 채웠다</div>
+        <span class="bc-tag" style="background:var(--amber-mid);color:var(--amber)">시간완수</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 천진 3제 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="ch-num" style="background:var(--green)">3</div>
+      <div class="ch-title">천진 3제 완성</div><span class="ch-req">필수</span>
+      <span class="ch-badge" id="jeje-badge-disp" style="background:var(--green-mid);color:var(--green)"></span>
+    </div>
+    <div class="card-body">
+      <div class="big-check" id="j1" onclick="toggleBig(this,'j1')">
+        <div class="bc-box"><span class="bc-check">✓</span></div>
+        <div class="bc-text">천진 3제 1번 완성</div>
+        <span class="bc-tag" style="background:var(--green-mid);color:var(--green)">1번</span>
+      </div>
+      <div class="big-check" id="j2" onclick="toggleBig(this,'j2')">
+        <div class="bc-box"><span class="bc-check">✓</span></div>
+        <div class="bc-text">천진 3제 2번 완성</div>
+        <span class="bc-tag" style="background:var(--green-mid);color:var(--green)">2번</span>
+      </div>
+      <div class="big-check" id="j3" onclick="toggleBig(this,'j3')">
+        <div class="bc-box"><span class="bc-check">✓</span></div>
+        <div class="bc-text">천진 3제 3번 완성</div>
+        <span class="bc-tag" style="background:var(--green-mid);color:var(--green)">3번</span>
+      </div>
+      <div class="field">
+        <label>어려웠던 점 (선택)</label>
+        <input type="text" id="jeje-hard" placeholder="예: 3번 — 수치대입법 어떻게 써야 할지 모르겠음" oninput="updateProg()">
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 한마디 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="ch-num" style="background:var(--purple)">4</div>
+      <div class="ch-title">선생님께 한마디</div>
+    </div>
+    <div class="card-body">
+      <div class="field">
+        <label>질문 / 전달 사항</label>
+        <textarea id="free-memo" placeholder="예: 7번 문제 접근 방향이 아직도 헷갈려요. 다음 수업 때 다시 설명해 주세요." oninput="updateProg()"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- 제출 -->
+  <div class="submit-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-size:13px;font-weight:700;color:var(--gray-dk)">제출하기</div>
+      <div style="font-size:11px;color:var(--gray)" id="prog-txt">0/3 필수 완료</div>
+    </div>
+    <div style="height:4px;background:var(--gray-md);border-radius:2px;overflow:hidden;margin-bottom:14px">
+      <div id="prog-bar" style="height:100%;border-radius:2px;background:var(--green2);transition:width .3s;width:0%"></div>
+    </div>
+    <button class="submit-btn" id="submit-btn" onclick="submitForm()">
+      <div class="spinner"></div>
+      <span class="btn-text">📤 오늘 체크리스트 제출</span>
+    </button>
+    <div style="text-align:center;font-size:11px;color:var(--gray);margin-top:8px" id="submit-hint">
+      제출하면 선생님께 자동으로 전송됩니다
+    </div>
+    <div id="err-msg" style="display:none;margin-top:10px;padding:10px;background:var(--red-lt);border:1px solid var(--red-mid);border-radius:8px;font-size:12px;color:var(--red)"></div>
+  </div>
+
+</div><!-- /form-wrap -->
+
+<!-- 완료 화면 -->
+<div class="done-wrap" id="done-wrap">
+  <div class="done-icon">🎉</div>
+  <div class="done-title" id="done-title">제출 완료!</div>
+  <div class="done-msg" id="done-msg">오늘도 수고했어요!</div>
+  <table class="done-table" id="done-table"></table>
+  <div class="done-btns">
+    <button class="done-btn" onclick="copyResult()">📋 결과 복사</button>
+    <button class="done-btn kakao" onclick="shareKakao()">💬 카카오톡 공유</button>
+    <button class="done-btn" onclick="resetForm()">↩ 다시 작성</button>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══ 설정 ════════════════════════════════════════ */
+let cfg = JSON.parse(localStorage.getItem('cj3_cfg') || '{}');
+
+function initCfg(){
+  const today = new Date().toISOString().slice(0,10);
+  cfg.date = cfg.date || today;
+  document.getElementById('cfg-name').value      = cfg.name      || '김예린1';
+  document.getElementById('cfg-date').value      = cfg.date;
+  document.getElementById('cfg-type').value      = cfg.type      || 'self';
+  document.getElementById('cfg-unit').value      = cfg.unit      || '';
+  document.getElementById('cfg-hw').value        = cfg.hw        || '';
+  document.getElementById('cfg-jeje').value      = cfg.jeje      || '';
+  document.getElementById('cfg-worker-url').value= cfg.workerUrl || 'https://cheonjin-worker.cheonjinbag1.workers.dev';
+  applyHeader();
+}
+
+function saveCfg(){
+  cfg = {
+    name:      document.getElementById('cfg-name').value.trim(),
+    date:      document.getElementById('cfg-date').value,
+    type:      document.getElementById('cfg-type').value,
+    unit:      document.getElementById('cfg-unit').value.trim(),
+    hw:        document.getElementById('cfg-hw').value.trim(),
+    jeje:      document.getElementById('cfg-jeje').value.trim(),
+    workerUrl: document.getElementById('cfg-worker-url').value.trim(),
+  };
+  localStorage.setItem('cj3_cfg', JSON.stringify(cfg));
+  applyHeader();
+  toggleCfg();
+  toast('설정이 저장됐어요 ✓');
+}
+
+function applyHeader(){
+  document.getElementById('hdr-name').textContent = cfg.name || '학생';
+  document.getElementById('hdr-date').textContent = cfg.date || '';
+  document.getElementById('hdr-unit').textContent = cfg.unit || '';
+  const badge = document.getElementById('day-badge');
+  if(cfg.type === 'lesson'){
+    badge.textContent='수업일'; badge.className='ah-badge dt-lesson';
+  } else {
+    badge.textContent='자습일'; badge.className='ah-badge dt-self';
+  }
+  const hwText = cfg.hw
+    ? '완성: ' + cfg.hw.slice(0,18) + (cfg.hw.length>18?'…':'')
+    : '완성: 오늘 숙제 완성했다';
+  document.getElementById('hw-text-disp').textContent = hwText;
+  document.getElementById('hw-badge-disp').textContent  = cfg.hw   ? cfg.hw.slice(0,14)+'…'   : '';
+  document.getElementById('jeje-badge-disp').textContent= cfg.jeje ? cfg.jeje.slice(0,14)+'…' : '';
+
+  const hint = cfg.workerUrl
+    ? '제출하면 선생님께 자동으로 전송됩니다 ✓'
+    : '⚠ Workers URL 미설정 — 결과를 복사해 전달하세요';
+  document.getElementById('submit-hint').textContent = hint;
+}
+
+function toggleCfg(){
+  const body  = document.getElementById('cfg-body');
+  const arrow = document.getElementById('cfg-arrow');
+  const open  = body.classList.toggle('open');
+  arrow.classList.toggle('open', open);
+}
+
+/* ══ 폼 상태 ════════════════════════════════════ */
+const S = {
+  hw_done:false, hw_pct:0, hw_solved:'', hw_total:'', hw_reason:'',
+  time_ok:false, math_min:0, total_min:0,
+  j1:false, j2:false, j3:false, jeje_hard:'',
+  free_memo:'',
+};
+
+function toggleBig(el, key){
+  el.classList.toggle('on');
+  S[key] = el.classList.contains('on');
+  updateProg();
+}
+
+function onPct(v){
+  document.getElementById('hw-pct-val').textContent = v+'%';
+  S.hw_pct = parseInt(v);
+  if(parseInt(v) >= 100){ document.getElementById('hw-check').classList.add('on'); S.hw_done=true; }
+  updateProg();
+}
+
+function syncState(){
+  S.hw_pct    = parseInt(document.getElementById('hw-pct').value);
+  S.hw_solved = document.getElementById('hw-solved').value;
+  S.hw_total  = document.getElementById('hw-total').value;
+  S.hw_reason = document.getElementById('hw-reason').value;
+  S.math_min  = parseInt(document.getElementById('math-min').value);
+  S.total_min = parseInt(document.getElementById('total-min').value);
+  S.jeje_hard = document.getElementById('jeje-hard').value;
+  S.free_memo = document.getElementById('free-memo').value;
+}
+
+function updateProg(){
+  syncState();
+  const done = [
+    S.hw_done || S.hw_pct > 0,
+    S.math_min > 0,
+    S.j1 || S.j2 || S.j3,
+  ];
+  const n = done.filter(Boolean).length;
+  const pct = Math.round(n/done.length*100);
+  document.getElementById('pb-fill').style.width  = pct+'%';
+  document.getElementById('pb-pct').textContent   = pct+'%';
+  document.getElementById('prog-bar').style.width = pct+'%';
+  document.getElementById('prog-txt').textContent = n+'/3 필수 완료';
+}
+
+/* ══ 제출 ════════════════════════════════════════ */
+async function submitForm(){
+  syncState();
+  const btn = document.getElementById('submit-btn');
+  const err = document.getElementById('err-msg');
+  err.style.display = 'none';
+
+  if(!S.hw_done && S.hw_pct === 0){ showErr('숙제 완성도를 입력해주세요'); return; }
+  if(S.math_min === 0){ showErr('수학 공부 시간을 슬라이더로 입력해주세요'); return; }
+
+  btn.disabled=true; btn.classList.add('loading');
+
+  const jejeDone = [S.j1,S.j2,S.j3].filter(Boolean).length;
+  const payload = {
+    date:         cfg.date || new Date().toISOString().slice(0,10),
+    student:      cfg.name || '미입력',
+    daytype:      cfg.type==='lesson'?'수업일':'자습일',
+    unit:         cfg.unit || '미입력',
+    hw_done:      S.hw_done ? '완성' : '미완성',
+    hw_pct:       S.hw_pct + '%',
+    hw_detail:    S.hw_solved && S.hw_total ? S.hw_solved+'/'+S.hw_total+'문제' : '',
+    hw_reason:    S.hw_reason,
+    math_min:     S.math_min + '분',
+    total_min:    S.total_min + '분',
+    study_min:    S.math_min+'분 (전체 '+S.total_min+'분)',
+    time_ok:      S.time_ok ? 'O' : 'X',
+    jeje:         jejeDone+'/3 완성',
+    jeje_hard:    S.jeje_hard,
+    memo:         S.free_memo,
+    hw_content:   cfg.hw   || '',
+    jeje_content: cfg.jeje || '',
+  };
+
+  let saved = false;
+
+  // ── GitHub Workers로 전송 ──────────────────────
+  if(cfg.workerUrl){
+    try{
+      const res = await fetch(cfg.workerUrl, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload),
+      });
+      if(res.ok) saved = true;
+      else console.warn('Worker 응답 오류:', await res.text());
+    } catch(e){
+      console.warn('Worker 전송 실패:', e);
+    }
+  }
+
+  btn.disabled=false; btn.classList.remove('loading');
+  showDone(payload, saved, jejeDone);
+}
+
+function showErr(msg){
+  const e = document.getElementById('err-msg');
+  e.textContent='⚠ '+msg; e.style.display='block';
+}
+
+function showDone(p, saved, jejeDone){
+  document.getElementById('form-wrap').style.display='none';
+  const d = document.getElementById('done-wrap');
+  d.classList.add('show');
+
+  const pct = parseInt(p.hw_pct);
+  let grade = '😊 잘했어요!';
+  if(pct>=100 && jejeDone===3 && p.time_ok==='O') grade='🏆 완벽해요!';
+  else if(pct<50) grade='💪 더 해봐요!';
+
+  document.getElementById('done-title').textContent = grade;
+  document.getElementById('done-msg').innerHTML = saved
+    ? '선생님께 자동으로 전송됐어요! 수고했어요 😄'
+    : '체크리스트 완료! 아래 결과를 캡처하거나 복사해서 보내주세요.';
+
+  const rows=[
+    ['날짜',     p.date],
+    ['학생',     p.student],
+    ['구분',     p.daytype],
+    ['학습단원', p.unit],
+    ['숙제완성', p.hw_done+' ('+p.hw_pct+')'],
+    ['상세',     p.hw_detail||'-'],
+    ['막힌 문제',p.hw_reason||'없음'],
+    ['수학공부', p.math_min],
+    ['시간완수', p.time_ok],
+    ['천진 3제', p.jeje],
+    ['어려운 점',p.jeje_hard||'없음'],
+    ['한마디',   p.memo||'없음'],
+  ];
+  document.getElementById('done-table').innerHTML = rows.map(([k,v])=>{
+    const c = v==='완성'||v==='O'||v==='3/3 완성'?'var(--green)':
+              v==='미완성'||v==='X'?'var(--red)':'var(--gray-dk)';
+    return `<tr><td>${k}</td><td style="color:${c}">${v}</td></tr>`;
+  }).join('');
+}
+
+/* ══ 복사·카카오 ════════════════════════════════ */
+function copyResult(){
+  const tbl = document.getElementById('done-table');
+  const txt = Array.from(tbl.querySelectorAll('tr'))
+    .map(r=>Array.from(r.querySelectorAll('td')).map(c=>c.textContent).join(': '))
+    .join('\n');
+  const full = '[천진수학 체크리스트]\n'+txt;
+  navigator.clipboard.writeText(full)
+    .then(()=>toast('복사됐어요! 카카오톡에 붙여넣어 보내세요 ✓'))
+    .catch(()=>{
+      const ta=document.createElement('textarea');
+      ta.value=full; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+      toast('복사됐어요! ✓');
+    });
+}
+
+function shareKakao(){
+  const tbl = document.getElementById('done-table');
+  const txt = Array.from(tbl.querySelectorAll('tr'))
+    .map(r=>Array.from(r.querySelectorAll('td')).map(c=>c.textContent).join(': '))
+    .join('\n');
+  const full = '[천진수학 체크리스트]\n'+txt;
+  navigator.clipboard.writeText(full).catch(()=>{});
+  const isMobile=/iPhone|Android/i.test(navigator.userAgent);
+  if(isMobile) toast('결과가 복사됐어요! 카카오톡을 열어 붙여넣기 하세요 💬');
+  else toast('PC에서는 결과를 복사해 카카오톡에 붙여넣으세요 💬');
+}
+
+function resetForm(){
+  document.getElementById('form-wrap').style.display='block';
+  document.getElementById('done-wrap').classList.remove('show');
+  document.querySelectorAll('.big-check.on').forEach(e=>e.classList.remove('on'));
+  ['hw-pct','math-min','total-min'].forEach(id=>{document.getElementById(id).value=0;});
+  document.getElementById('hw-pct-val').textContent='0%';
+  document.getElementById('math-min-val').textContent='0분';
+  document.getElementById('total-min-val').textContent='0분';
+  ['hw-solved','hw-total','hw-reason','jeje-hard','free-memo'].forEach(id=>{document.getElementById(id).value='';});
+  Object.keys(S).forEach(k=>{S[k]=typeof S[k]==='boolean'?false:0;});
+  S.hw_reason=''; S.hw_solved=''; S.hw_total=''; S.jeje_hard=''; S.free_memo='';
+  document.getElementById('err-msg').style.display='none';
+  updateProg();
+}
+
+/* ══ 토스트 ════════════════════════════════════ */
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+/* ══ 초기화 ════════════════════════════════════ */
+initCfg();
+</script>
+</body>
+</html>

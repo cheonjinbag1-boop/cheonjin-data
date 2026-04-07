@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>천진수학 — 문제 배포 도구</title>
+<style>
+:root{
+  --navy:#0f2044;--blue:#1d4ed8;--blue2:#3b82f6;
+  --green:#059669;--green-lt:#f0fdf4;--green-mid:#dcfce7;
+  --amber:#d97706;--amber-lt:#fffbeb;--amber-mid:#fef3c7;
+  --red:#dc2626;--red-lt:#fef2f2;--red-mid:#fecaca;
+  --purple:#7c3aed;--purple-lt:#faf5ff;--purple-mid:#ede9fe;
+  --gray:#6b7280;--gray-lt:#f9fafb;--gray-md:#e5e7eb;--gray-dk:#374151;
+  --font:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:#f0f4f8;color:var(--gray-dk);min-height:100vh;padding-bottom:60px}
+.hdr{background:var(--navy);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:10px}
+.logo{font-size:16px;font-weight:900}.logo span{color:#60a5fa}
+.hdr-sub{font-size:12px;color:rgba(255,255,255,.5)}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+.card{background:#fff;border-radius:14px;border:1px solid var(--gray-md);margin-bottom:16px;overflow:hidden}
+.card-head{padding:12px 18px;border-bottom:1px solid var(--gray-md);background:var(--gray-lt);display:flex;align-items:center;gap:8px}
+.ch-num{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.ch-title{font-size:13px;font-weight:700;color:var(--gray-dk)}
+.ch-sub{font-size:11px;color:var(--gray);margin-left:4px}
+.card-body{padding:16px 18px}
+.f{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.f:last-child{margin-bottom:0}
+.f label{font-size:11px;font-weight:700;color:var(--gray);letter-spacing:.04em;text-transform:uppercase}
+.f input,.f select,.f textarea{background:var(--gray-lt);border:1.5px solid var(--gray-md);color:var(--gray-dk);font-family:var(--font);font-size:13px;padding:9px 12px;border-radius:9px;outline:none;transition:border-color .15s;-webkit-appearance:none}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--blue2);background:#fff}
+.f textarea{min-height:80px;resize:vertical;line-height:1.6}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.btn{padding:10px 18px;border-radius:9px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-green{background:var(--green);color:#fff}
+.btn-ghost{background:#fff;border:1.5px solid var(--gray-md);color:var(--gray-dk)}
+.btn-ghost:hover{border-color:var(--blue2);color:var(--blue)}
+.btn-w{width:100%}
+.btn-sm{padding:7px 12px;font-size:12px}
+
+/* 학생 목록 */
+.stu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:14px}
+.stu-item{padding:10px 12px;border-radius:9px;border:2px solid var(--gray-md);background:#fff;cursor:pointer;transition:all .15s;font-size:13px;font-weight:600;text-align:center;color:var(--gray-dk)}
+.stu-item:hover{border-color:var(--blue2);color:var(--blue)}
+.stu-item.selected{border-color:var(--blue);background:#eff6ff;color:var(--blue)}
+.stu-item.has-q{border-color:var(--green);background:var(--green-lt);color:var(--green)}
+.stu-item.has-q.selected{border-color:var(--blue);background:#eff6ff;color:var(--blue)}
+
+/* 배포 결과 목록 */
+.deploy-item{background:var(--gray-lt);border:1px solid var(--gray-md);border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.deploy-item.done{background:var(--green-lt);border-color:var(--green-mid)}
+.di-name{font-size:13px;font-weight:700;min-width:70px;color:var(--navy)}
+.di-q{font-size:12px;color:var(--gray);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.di-url{font-size:10px;font-family:monospace;color:var(--blue);word-break:break-all;flex:2}
+.di-btns{display:flex;gap:6px;flex-shrink:0}
+.copy-btn{padding:5px 10px;border-radius:6px;border:1px solid var(--blue2);background:#fff;font-size:11px;font-weight:700;color:var(--blue);cursor:pointer;white-space:nowrap;font-family:var(--font)}
+.copy-btn:hover{background:#eff6ff}
+.kk-btn{padding:5px 10px;border-radius:6px;border:1px solid #FEE500;background:#FEE500;font-size:11px;font-weight:700;color:#191919;cursor:pointer;white-space:nowrap;font-family:var(--font)}
+
+/* 배포 진행 */
+.deploy-progress{background:#fff;border:1px solid var(--gray-md);border-radius:10px;padding:16px;margin-bottom:16px;display:none}
+.dp-bar-wrap{height:8px;background:var(--gray-md);border-radius:4px;overflow:hidden;margin:10px 0}
+.dp-bar{height:100%;border-radius:4px;background:var(--green);transition:width .3s}
+.dp-status{font-size:12px;color:var(--gray)}
+
+/* 탭 */
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--gray-md);margin-bottom:16px}
+.tab{padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;color:var(--gray);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab.on{color:var(--blue);border-bottom-color:var(--blue)}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--gray-dk);color:#fff;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:600;opacity:0;transition:all .25s;pointer-events:none;z-index:999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.tip{background:var(--amber-lt);border:1px solid var(--amber-mid);border-radius:9px;padding:11px 14px;font-size:12px;color:var(--amber);line-height:1.7;margin-bottom:14px}
+.tip strong{display:block;margin-bottom:3px;font-size:13px}
+
+@media(max-width:480px){.g2,.g3{grid-template-columns:1fr}.stu-grid{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">천진<span>수학</span></div>
+  <div class="hdr-sub">문제 배포 도구 — 원장 전용</div>
+</div>
+
+<div class="wrap">
+
+<!-- ① 설정 -->
+<div class="card">
+  <div class="card-head">
+    <div class="ch-num" style="background:var(--navy)">⚙</div>
+    <div class="ch-title">GitHub 설정</div>
+    <div class="ch-sub">처음 한 번만 입력하면 저장됩니다</div>
+  </div>
+  <div class="card-body">
+    <div class="g3">
+      <div class="f">
+        <label>GitHub Owner</label>
+        <input id="cfg-owner" placeholder="cheonjinbag1-boop">
+      </div>
+      <div class="f">
+        <label>GitHub Repo</label>
+        <input id="cfg-repo" placeholder="cheonjin-data">
+      </div>
+      <div class="f">
+        <label>GitHub Token</label>
+        <input type="password" id="cfg-token" placeholder="ghp_xxxx...">
+      </div>
+    </div>
+    <div class="f">
+      <label>GitHub Pages 기본 URL</label>
+      <input id="cfg-pages-url" placeholder="https://cheonjinbag1-boop.github.io/cheonjin-data">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-navy" onclick="saveCfg()">💾 설정 저장</button>
+      <button class="btn btn-ghost" onclick="testCfg()">🔗 연결 테스트</button>
+      <span id="cfg-test-result" style="font-size:12px;align-self:center;color:var(--gray)"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ② 문제 작성 + 학생 배포 -->
+<div class="card">
+  <div class="card-head">
+    <div class="ch-num" style="background:var(--blue)">✏</div>
+    <div class="ch-title">문제 작성 & 배포</div>
+  </div>
+  <div class="card-body">
+
+    <div class="tabs">
+      <div class="tab on" id="tab-write" onclick="switchTab('write')">📝 문제 작성</div>
+      <div class="tab" id="tab-deploy" onclick="switchTab('deploy')">📤 배포 결과</div>
+    </div>
+
+    <!-- 문제 작성 탭 -->
+    <div id="pane-write">
+      <div class="g2">
+        <div class="f">
+          <label>단원</label>
+          <input id="q-unit" placeholder="예: 미분, 수열, 다항식">
+        </div>
+        <div class="f">
+          <label>난이도</label>
+          <select id="q-diff">
+            <option>하</option>
+            <option selected>중</option>
+            <option>상</option>
+            <option>최상</option>
+          </select>
+        </div>
+      </div>
+      <div class="f">
+        <label>문제 내용 *</label>
+        <textarea id="q-content" style="min-height:120px" placeholder="문제를 입력하세요.&#10;예) 함수 f(x)=x³-3x²+2 의 극값을 구하시오."></textarea>
+      </div>
+      <div class="f">
+        <label>정답 (채점 기준) *</label>
+        <input id="q-answer" placeholder="예: 극대값 2 (x=0), 극소값 -2 (x=2)">
+      </div>
+      <div class="f">
+        <label>해설 (선택)</label>
+        <textarea id="q-sol" placeholder="단계별 풀이 해설을 입력하면 학생이 오답 시 볼 수 있습니다."></textarea>
+      </div>
+
+      <div style="border-top:1px solid var(--gray-md);padding-top:14px;margin-top:4px">
+        <div style="font-size:13px;font-weight:700;color:var(--gray-dk);margin-bottom:10px">배포할 학생 선택</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="selectAll()">전체 선택</button>
+          <button class="btn btn-ghost btn-sm" onclick="selectNone()">전체 해제</button>
+          <span id="sel-count" style="font-size:12px;color:var(--gray);align-self:center">0명 선택됨</span>
+        </div>
+        <div class="stu-grid" id="stu-grid"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn btn-green btn-w" id="btn-deploy" onclick="deployAll()">
+          📤 선택한 학생에게 배포
+        </button>
+      </div>
+      <div id="deploy-progress" class="deploy-progress">
+        <div style="font-size:13px;font-weight:700;color:var(--gray-dk)">배포 중...</div>
+        <div class="dp-bar-wrap"><div class="dp-bar" id="dp-bar" style="width:0%"></div></div>
+        <div class="dp-status" id="dp-status"></div>
+      </div>
+    </div>
+
+    <!-- 배포 결과 탭 -->
+    <div id="pane-deploy" style="display:none">
+      <div class="tip">
+        <strong>💡 사용법</strong>
+        각 학생의 링크를 복사해서 카카오톡으로 보내세요. 링크를 열면 해당 학생의 문제가 바로 뜹니다.
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="copyAllLinks()">📋 전체 링크 복사</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearDeployHistory()">🗑 기록 초기화</button>
+        <span id="deploy-count" style="font-size:12px;color:var(--gray);align-self:center"></span>
+      </div>
+      <div id="deploy-list"></div>
+    </div>
+
+  </div>
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STUDENTS = [
+  "김의령","박지형","이시연","김예린1","이정민",
+  "정윤하","이지윤","김지영","김예린2","윤찬우",
+  "장수영","박이한","이경규","김다혜","박성현",
+  "학생1","학생2","학생3","학생4","학생5",
+  "학생6","학생7","학생8","학생9","학생10",
+  "학생11","학생12","학생13","학생14","학생15"
+];
+
+let selected = new Set();
+let deployHistory = JSON.parse(localStorage.getItem('cj_deploy_history')||'[]');
+
+// ── 설정 ─────────────────────────────────────────────
+function saveCfg(){
+  const cfg = {
+    owner: document.getElementById('cfg-owner').value.trim(),
+    repo:  document.getElementById('cfg-repo').value.trim(),
+    token: document.getElementById('cfg-token').value.trim(),
+    pages: document.getElementById('cfg-pages-url').value.trim().replace(/\/$/,''),
+  };
+  localStorage.setItem('cj_deploy_cfg', JSON.stringify(cfg));
+  toast('설정 저장됐어요 ✓');
+}
+
+function loadCfg(){
+  const cfg = JSON.parse(localStorage.getItem('cj_deploy_cfg')||'{}');
+  if(cfg.owner) document.getElementById('cfg-owner').value = cfg.owner;
+  if(cfg.repo)  document.getElementById('cfg-repo').value  = cfg.repo;
+  if(cfg.token) document.getElementById('cfg-token').value = cfg.token;
+  if(cfg.pages) document.getElementById('cfg-pages-url').value = cfg.pages;
+  return cfg;
+}
+
+function getCfg(){
+  return JSON.parse(localStorage.getItem('cj_deploy_cfg')||'{}');
+}
+
+async function testCfg(){
+  const cfg = getCfg();
+  const res = document.getElementById('cfg-test-result');
+  res.textContent = '테스트 중...'; res.style.color = 'var(--gray)';
+  if(!cfg.owner||!cfg.token){res.textContent='⚠ Owner와 Token을 먼저 입력해주세요';res.style.color='var(--amber)';return;}
+  try{
+    const r = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}`,{
+      headers:{'Authorization':'Bearer '+cfg.token,'Accept':'application/vnd.github+json'}
+    });
+    if(r.ok){res.textContent='✅ 연결 성공!';res.style.color='var(--green)';}
+    else throw new Error('status '+r.status);
+  }catch(e){res.textContent='❌ 실패: '+e.message;res.style.color='var(--red)';}
+}
+
+// ── 학생 목록 ─────────────────────────────────────────
+function renderStudents(){
+  const grid = document.getElementById('stu-grid');
+  grid.innerHTML = STUDENTS.map(name => {
+    const hasQ = deployHistory.some(d => d.student === name);
+    const isSel = selected.has(name);
+    return `<div class="stu-item${isSel?' selected':''}${hasQ?' has-q':''}" onclick="toggleStu('${name}')" title="${hasQ?'이미 배포됨':''}">
+      ${name}${hasQ?' ✓':''}
+    </div>`;
+  }).join('');
+  document.getElementById('sel-count').textContent = selected.size + '명 선택됨';
+}
+
+function toggleStu(name){
+  if(selected.has(name)) selected.delete(name);
+  else selected.add(name);
+  renderStudents();
+}
+
+function selectAll(){ STUDENTS.forEach(n=>selected.add(n)); renderStudents(); }
+function selectNone(){ selected.clear(); renderStudents(); }
+
+// ── 배포 ─────────────────────────────────────────────
+async function deployAll(){
+  const cfg = getCfg();
+  if(!cfg.owner||!cfg.repo||!cfg.token){
+    toast('⚠ GitHub 설정을 먼저 입력해주세요');return;
+  }
+  if(!cfg.pages){toast('⚠ GitHub Pages URL을 입력해주세요');return;}
+
+  const content = document.getElementById('q-content').value.trim();
+  const answer  = document.getElementById('q-answer').value.trim();
+  if(!content){toast('⚠ 문제 내용을 입력해주세요');return;}
+  if(!answer){toast('⚠ 정답을 입력해주세요');return;}
+  if(selected.size===0){toast('⚠ 학생을 1명 이상 선택해주세요');return;}
+
+  const unit = document.getElementById('q-unit').value.trim()||'미분류';
+  const diff = document.getElementById('q-diff').value;
+  const sol  = document.getElementById('q-sol').value.trim();
+
+  const students = [...selected];
+  const prog = document.getElementById('deploy-progress');
+  const bar  = document.getElementById('dp-bar');
+  const stat = document.getElementById('dp-status');
+  prog.style.display = 'block';
+  document.getElementById('btn-deploy').disabled = true;
+
+  let done = 0;
+  const newHistory = [];
+
+  for(const name of students){
+    stat.textContent = `${name} 배포 중... (${done+1}/${students.length})`;
+
+    // 문제 데이터를 URL 파라미터로 인코딩
+    const qData = { unit, diff, content, answer, sol, student: name, id: Date.now() };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(qData))));
+    const safeName = name.replace(/[^\w가-힣]/g,'_');
+    const pageUrl = `${cfg.pages}/문제풀기_${safeName}.html?qdata=${encoded}`;
+
+    // GitHub API로 학생 파일에 문제 데이터 주입
+    const result = await injectQuestion(cfg, safeName, qData);
+
+    newHistory.push({
+      student: name,
+      safeName,
+      unit, diff,
+      content: content.slice(0,40),
+      url: result.ok ? `${cfg.pages}/문제풀기_${safeName}.html?qdata=${encoded}` : pageUrl,
+      deployedAt: new Date().toLocaleString('ko-KR'),
+      ok: result.ok,
+      error: result.error||'',
+    });
+
+    done++;
+    bar.style.width = Math.round(done/students.length*100)+'%';
+  }
+
+  // 기록 저장
+  deployHistory = [...newHistory, ...deployHistory].slice(0, 200);
+  localStorage.setItem('cj_deploy_history', JSON.stringify(deployHistory));
+
+  prog.style.display = 'none';
+  document.getElementById('btn-deploy').disabled = false;
+  stat.textContent = '';
+
+  const okCount = newHistory.filter(r=>r.ok).length;
+  toast(`✅ ${okCount}명 배포 완료! (실패 ${newHistory.length-okCount}명)`);
+  switchTab('deploy');
+  renderDeployList();
+  renderStudents();
+}
+
+// GitHub API로 학생 파일에 qdata 주입
+async function injectQuestion(cfg, safeName, qData){
+  const filePath = `문제풀기_${safeName}.html`;
+  const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${filePath}`;
+  const headers = {
+    'Authorization': 'Bearer '+cfg.token,
+    'Accept': 'application/vnd.github+json',
+    'Content-Type': 'application/json',
+  };
+
+  try{
+    // 기존 파일 가져오기
+    const getRes = await fetch(apiUrl, {headers});
+    if(!getRes.ok) return {ok:false, error:'파일 없음 '+getRes.status};
+    const fileData = await getRes.json();
+    const sha = fileData.sha;
+
+    // 파일 내용 디코딩
+    let html = decodeURIComponent(escape(atob(fileData.content.replace(/\n/g,''))));
+
+    // 기존 PRESET_Q 교체 또는 삽입
+    const qJson = JSON.stringify(qData);
+    const marker = '/* ══ 상태 ══';
+    const newScript = `/* ══ PRESET_Q (원장 배포) ══ */\nconst PRESET_Q = ${qJson};\n\n${marker}`;
+
+    if(html.includes('const PRESET_Q')){
+      html = html.replace(/\/\* ══ PRESET_Q[\s\S]*?PRESET_Q = .*?;\n\n/, '');
+    }
+    html = html.replace(marker, newScript);
+
+    // 파일 저장
+    const encoded = btoa(unescape(encodeURIComponent(html)));
+    const putRes = await fetch(apiUrl, {
+      method: 'PUT', headers,
+      body: JSON.stringify({
+        message: `[문제배포] ${qData.student} ${qData.unit}`,
+        content: encoded,
+        sha,
+      })
+    });
+
+    if(putRes.ok) return {ok:true};
+    const err = await putRes.json();
+    return {ok:false, error: err.message||'저장 실패'};
+  }catch(e){
+    return {ok:false, error: e.message};
+  }
+}
+
+// ── 배포 결과 ─────────────────────────────────────────
+function renderDeployList(){
+  const list = document.getElementById('deploy-list');
+  document.getElementById('deploy-count').textContent = deployHistory.length+'건';
+
+  if(!deployHistory.length){
+    list.innerHTML='<div style="font-size:13px;color:var(--gray);text-align:center;padding:24px">배포 기록이 없습니다</div>';
+    return;
+  }
+
+  list.innerHTML = deployHistory.map((d,i) => `
+    <div class="deploy-item${d.ok?' done':''}">
+      <div class="di-name">${d.student}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700;color:var(--gray-dk);margin-bottom:2px">${d.unit} · ${d.diff}</div>
+        <div class="di-q">${d.content}…</div>
+        <div style="font-size:10px;color:var(--gray);margin-top:2px">${d.deployedAt} ${d.ok?'✅':'❌ '+d.error}</div>
+      </div>
+      <div class="di-btns">
+        <button class="copy-btn" onclick="copyLink(${i})">📋 복사</button>
+        <button class="kk-btn"   onclick="kkLink(${i})">💬 카톡</button>
+      </div>
+    </div>`).join('');
+}
+
+function copyLink(i){
+  navigator.clipboard.writeText(deployHistory[i].url)
+    .then(()=>toast('링크 복사됐어요 ✓'))
+    .catch(()=>toast('복사 실패'));
+}
+
+function kkLink(i){
+  const d = deployHistory[i];
+  const txt = `[천진수학 문제]\n${d.student}님 — ${d.unit} ${d.diff}\n${d.url}`;
+  navigator.clipboard.writeText(txt)
+    .then(()=>toast('카카오톡에 붙여넣기 하세요 💬'))
+    .catch(()=>toast('복사 실패'));
+}
+
+function copyAllLinks(){
+  const txt = deployHistory.map(d=>`${d.student}: ${d.url}`).join('\n');
+  navigator.clipboard.writeText(txt)
+    .then(()=>toast('전체 링크 복사됐어요 ✓'))
+    .catch(()=>toast('복사 실패'));
+}
+
+function clearDeployHistory(){
+  if(!confirm('배포 기록을 모두 삭제할까요?')) return;
+  deployHistory = [];
+  localStorage.removeItem('cj_deploy_history');
+  renderDeployList();
+  renderStudents();
+  toast('초기화됐어요');
+}
+
+// ── 탭 전환 ──────────────────────────────────────────
+function switchTab(tab){
+  ['write','deploy'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('on', t===tab);
+    document.getElementById('pane-'+t).style.display = t===tab?'block':'none';
+  });
+  if(tab==='deploy') renderDeployList();
+}
+
+// ── 토스트 ────────────────────────────────────────────
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ── 초기화 ────────────────────────────────────────────
+loadCfg();
+renderStudents();
+</script>
+</body>
+</html>

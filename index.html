@@ -4419,7 +4419,7 @@ const GEMINI_MODELS = {
 };
 
 function geminiGetKey(){ return localStorage.getItem('cj_gemini_key')||''; }
-function geminiGetModel(){ return localStorage.getItem('cj_gemini_model')||'gemini-3-flash-preview-05-20'; }
+function geminiGetModel(){ return localStorage.getItem('cj_gemini_model')||'gemini-3-flash-preview'; }
 
 function geminiUpdateSidebarStatus(){
   const key = geminiGetKey();
@@ -4465,7 +4465,7 @@ function closeGeminiSettings(){
 
 async function testGeminiConnection(){
   const key = document.getElementById('gemini-api-key').value.trim();
-  const model = document.querySelector('input[name="gemini-model"]:checked')?.value || 'gemini-3-flash-preview-05-20';
+  const model = document.querySelector('input[name="gemini-model"]:checked')?.value || 'gemini-3-flash-preview';
   const res = document.getElementById('gemini-test-result');
   if(!key){ res.style.display='block'; res.style.background='#fde8e8'; res.style.color='#b01515'; res.textContent='API 키를 입력하세요.'; return; }
   res.style.display='block'; res.style.background='#dde8fb'; res.style.color='#1a3ab8'; res.textContent='연결 테스트 중...';

@@ -4414,8 +4414,8 @@ populateSelects();
 // ============================================================
 const GEMINI_MODELS = {
   'gemini-3-flash-preview': 'Gemini 3 Flash Preview',
-  'gemini-3-1-pro-preview': 'Gemini 3.1 Pro Preview',
-  'gemini-3-1-flash-lite-preview': 'Gemini 3.1 Flash Lite Preview'
+  'gemini-3.1-pro-preview': 'Gemini 3.1 Pro Preview',
+  'gemini-3.1-flash-lite-preview': 'Gemini 3.1 Flash Lite Preview'
 };
 
 function geminiGetKey(){ return localStorage.getItem('cj_gemini_key')||''; }
@@ -6632,14 +6632,14 @@ setTimeout(gcalUpdateDot, 400);
           </div>
         </label>
         <label style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1.5px solid #d8d6d0;border-radius:10px;cursor:pointer;transition:.15s" id="gemini-model-opt-pro">
-          <input type="radio" name="gemini-model" value="gemini-3-1-pro-preview" style="margin-top:3px;accent-color:#2a4fd4">
+          <input type="radio" name="gemini-model" value="gemini-3.1-pro-preview" style="margin-top:3px;accent-color:#2a4fd4">
           <div>
             <div style="font-size:13px;font-weight:800;color:#1a1a2e">Gemini 3.1 Pro Preview</div>
             <div style="font-size:11px;color:#8888a8;margin-top:2px">고성능 — 복잡한 플랜 생성 권장</div>
           </div>
         </label>
         <label style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1.5px solid #d8d6d0;border-radius:10px;cursor:pointer;transition:.15s" id="gemini-model-opt-lite">
-          <input type="radio" name="gemini-model" value="gemini-3-1-flash-lite-preview" style="margin-top:3px;accent-color:#2a4fd4">
+          <input type="radio" name="gemini-model" value="gemini-3.1-flash-lite-preview" style="margin-top:3px;accent-color:#2a4fd4">
           <div>
             <div style="font-size:13px;font-weight:800;color:#1a1a2e">Gemini 3.1 Flash Lite Preview</div>
             <div style="font-size:11px;color:#8888a8;margin-top:2px">초경량 · 최고속 — 간단한 작업용</div>

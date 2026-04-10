@@ -7205,17 +7205,15 @@ async function loadConsultCards(silent = false) {
   if (!silent) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--ink3)">⏳ 불러오는 중...</td></tr>';
 
   try {
-    const apiUrl = `https://api.github.com/repos/${CONSULT_OWNER}/${CONSULT_REPO}/contents/`;
-    const res = await fetch(apiUrl, {
-      headers: { 'Accept': 'application/vnd.github+json', 'User-Agent': 'cheonjin-dashboard' }
-    });
-    if (!res.ok) throw new Error('GitHub API 오류: ' + res.status);
+    const WORKERS_URL = 'https://cheonjin-consult.cheonjinbag1.workers.dev';
+    const res = await fetch(WORKERS_URL + '?t=' + Date.now());
+    if (!res.ok) throw new Error('Workers API 오류: ' + res.status);
     const files = await res.json();
     const jsonFiles = files.filter(f => f.name.endsWith('.json'));
 
     const cards = await Promise.all(jsonFiles.map(async f => {
       try {
-        const r = await fetch(f.download_url + '?t=' + Date.now()); // 캐시 방지
+        const r = await fetch(WORKERS_URL + '?file=' + encodeURIComponent(f.name) + '&t=' + Date.now());
         const data = await r.json();
         data._filename = f.name;
         return data;

@@ -461,6 +461,9 @@ body{font-family:'Nanum Gothic',sans-serif;background:var(--bg);color:var(--ink)
       <div class="nav-item" onclick="goto('checklist-dashboard')">
         <span class="nav-icon">✅</span> 체크리스트 현황 <span class="nav-badge" id="cl-badge"></span>
       </div>
+      <div class="nav-item" onclick="goto('consult')">
+        <span class="nav-icon">📋</span> 상담카드 접수 <span class="nav-badge" id="consult-badge" style="display:none"></span>
+      </div>
       <div class="nav-item" onclick="goto('github-data')">
         <span class="nav-icon">🗄</span> GitHub 데이터 관리
       </div>
@@ -838,6 +841,82 @@ body{font-family:'Nanum Gothic',sans-serif;background:var(--bg);color:var(--ink)
       <div id="ghd-export-result" style="margin-top:12px"></div>
     </div>
 
+  </div>
+</div>
+
+<!-- =================== 상담카드 접수 =================== -->
+<div id="panel-consult" class="panel">
+  <div class="topbar">
+    <div class="page-title">📋 상담카드 접수</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="loadConsultCards()">↻ 새로고침</button>
+      <button class="btn btn-primary btn-sm" onclick="consultExportCSV()">📊 CSV 내보내기</button>
+    </div>
+  </div>
+  <div style="padding:20px 28px">
+
+    <!-- 통계 -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+      <div class="stat stat-accent"><div class="stat-label">전체 접수</div><div class="stat-value" id="cs-total">0</div><div class="stat-sub">건</div></div>
+      <div class="stat stat-ok"><div class="stat-label">이번 주</div><div class="stat-value" id="cs-week">0</div><div class="stat-sub">건</div></div>
+      <div class="stat stat-warn"><div class="stat-label">이번 달</div><div class="stat-value" id="cs-month">0</div><div class="stat-sub">건</div></div>
+      <div class="stat"><div class="stat-label">미확인</div><div class="stat-value" id="cs-new">0</div><div class="stat-sub">건</div></div>
+    </div>
+
+    <!-- 검색/필터 -->
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <input class="form-input" id="cs-search" placeholder="🔍 이름, 학교, 연락처 검색..." style="flex:1;min-width:200px" oninput="renderConsultTable()">
+        <select class="form-select" id="cs-filter-grade" style="width:120px" onchange="renderConsultTable()">
+          <option value="">전체 학년</option>
+          <option>중1</option><option>중2</option><option>중3</option>
+          <option>고1</option><option>고2</option><option>고3</option><option>재수생</option>
+        </select>
+        <select class="form-select" id="cs-filter-status" style="width:120px" onchange="renderConsultTable()">
+          <option value="">전체 상태</option>
+          <option value="new">미확인</option>
+          <option value="done">확인완료</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 접수 목록 테이블 -->
+    <div class="card">
+      <div class="tbl-wrap" style="overflow-x:auto">
+        <table class="tbl tbl-clickable">
+          <thead>
+            <tr>
+              <th>접수일시</th>
+              <th>이름</th>
+              <th>학교/학년</th>
+              <th>연락처</th>
+              <th>목표</th>
+              <th>희망요일</th>
+              <th>진단테스트</th>
+              <th>상태</th>
+            </tr>
+          </thead>
+          <tbody id="cs-tbody">
+            <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--ink3)">↻ 새로고침을 눌러 데이터를 불러오세요</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 상담카드 상세 모달 -->
+<div id="modal-consult-detail" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center;overflow-y:auto;padding:20px">
+  <div style="background:#fff;border-radius:14px;width:600px;max-width:98vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <div style="padding:24px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:18px;font-weight:800" id="cd-title">상담카드 상세</div>
+      <button onclick="document.getElementById('modal-consult-detail').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink3)">✕</button>
+    </div>
+    <div id="cd-body" style="padding:24px 28px"></div>
+    <div style="padding:16px 28px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="consultMarkDone()" class="btn btn-ok btn-sm">✅ 확인 완료</button>
+      <button onclick="document.getElementById('modal-consult-detail').style.display='none'" class="btn btn-ghost btn-sm">닫기</button>
+    </div>
   </div>
 </div>
 
@@ -2206,6 +2285,7 @@ function goto(panel) {
   if(panel==='timetable') renderTimetable();
   if(panel==='checklist-dashboard') renderChecklistDashboard();
   if(panel==='github-data') renderGithubData();
+  if(panel==='consult') loadConsultCards();
   if(panel==='todo') renderTodo();
   if(panel==='mathplan') renderMathplan();
   if(panel==='progress') renderProgress();
@@ -7086,6 +7166,263 @@ setTimeout(() => {
 }, 400);
 
 applyNavState();
+
+// ============================================================
+// ===== 상담카드 접수 =========================================
+// ============================================================
+const CONSULT_OWNER = 'cheonjinbag1-boop';
+const CONSULT_REPO  = 'cheonjin-consult-data';
+let consultCards = [];
+let consultCurrentFile = null;
+let consultPollTimer = null;
+
+// 브라우저 알림 권한 요청
+function requestNotifyPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+requestNotifyPermission();
+
+// 새 접수 알림 발송
+function notifyNewConsult(cards) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (cards.length === 1) {
+    new Notification('📋 새 상담카드 접수!', {
+      body: `${cards[0].name} 학생 (${cards[0].grade || '-'}) 상담카드가 접수됐습니다.`,
+      icon: ''
+    });
+  } else {
+    new Notification(`📋 상담카드 ${cards.length}건 접수!`, {
+      body: cards.map(c => c.name).join(', ') + ' 학생 상담카드가 접수됐습니다.',
+      icon: ''
+    });
+  }
+}
+
+async function loadConsultCards(silent = false) {
+  const tbody = document.getElementById('cs-tbody');
+  if (!silent) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--ink3)">⏳ 불러오는 중...</td></tr>';
+
+  try {
+    const apiUrl = `https://api.github.com/repos/${CONSULT_OWNER}/${CONSULT_REPO}/contents/`;
+    const res = await fetch(apiUrl, {
+      headers: { 'Accept': 'application/vnd.github+json', 'User-Agent': 'cheonjin-dashboard' }
+    });
+    if (!res.ok) throw new Error('GitHub API 오류: ' + res.status);
+    const files = await res.json();
+    const jsonFiles = files.filter(f => f.name.endsWith('.json'));
+
+    const cards = await Promise.all(jsonFiles.map(async f => {
+      try {
+        const r = await fetch(f.download_url + '?t=' + Date.now()); // 캐시 방지
+        const data = await r.json();
+        data._filename = f.name;
+        return data;
+      } catch { return null; }
+    }));
+
+    const newCards = cards.filter(Boolean).sort((a, b) =>
+      new Date(b.submitted_at) - new Date(a.submitted_at)
+    );
+
+    // 이전과 비교해서 새로 추가된 카드 감지
+    const seen = JSON.parse(localStorage.getItem('cj_consult_seen') || '[]');
+    const prevFilenames = consultCards.map(c => c._filename);
+    const brandNew = newCards.filter(c => !prevFilenames.includes(c._filename) && !seen.includes(c._filename));
+
+    // 새 접수 알림
+    if (brandNew.length > 0 && consultCards.length > 0) {
+      notifyNewConsult(brandNew);
+    }
+
+    consultCards = newCards;
+
+    // 미확인 배지 업데이트
+    const newCount = consultCards.filter(c => !seen.includes(c._filename)).length;
+    const badge = document.getElementById('consult-badge');
+    if (badge) { badge.textContent = newCount; badge.style.display = newCount > 0 ? '' : 'none'; }
+
+    renderConsultTable();
+  } catch(e) {
+    if (!silent) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--danger)">❌ 불러오기 실패: ${e.message}<br><small>GitHub repo가 public인지, 데이터가 있는지 확인하세요</small></td></tr>`;
+    }
+  }
+}
+
+// 5분마다 자동 체크 (백그라운드)
+function startConsultPolling() {
+  if (consultPollTimer) return;
+  consultPollTimer = setInterval(() => loadConsultCards(true), 5 * 60 * 1000);
+}
+startConsultPolling();
+
+// 페이지 로드 시 배지 초기화용 첫 로드 (조용히)
+setTimeout(() => loadConsultCards(true), 3000);
+
+function renderConsultTable() {
+  const tbody = document.getElementById('cs-tbody');
+  if (!tbody) return;
+  const search = (document.getElementById('cs-search')?.value || '').toLowerCase();
+  const grade  = document.getElementById('cs-filter-grade')?.value || '';
+  const status = document.getElementById('cs-filter-status')?.value || '';
+  const seen   = JSON.parse(localStorage.getItem('cj_consult_seen') || '[]');
+
+  let filtered = consultCards.filter(c => {
+    if (search && !`${c.name}${c.school}${c.parent_tel}${c.student_tel}`.toLowerCase().includes(search)) return false;
+    if (grade  && c.grade !== grade) return false;
+    if (status === 'new'  && seen.includes(c._filename)) return false;
+    if (status === 'done' && !seen.includes(c._filename)) return false;
+    return true;
+  });
+
+  // 통계 업데이트
+  const now = new Date();
+  const weekAgo  = new Date(now - 7*24*60*60*1000);
+  const monthAgo = new Date(now.getFullYear(), now.getMonth(), 1);
+  document.getElementById('cs-total').textContent = consultCards.length;
+  document.getElementById('cs-week').textContent  = consultCards.filter(c => new Date(c.submitted_at) >= weekAgo).length;
+  document.getElementById('cs-month').textContent = consultCards.filter(c => new Date(c.submitted_at) >= monthAgo).length;
+  document.getElementById('cs-new').textContent   = consultCards.filter(c => !seen.includes(c._filename)).length;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--ink3)">해당하는 상담카드가 없습니다</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((c) => {
+    const isNew = !seen.includes(c._filename);
+    const date  = c.submitted_at ? new Date(c.submitted_at).toLocaleString('ko-KR', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-';
+    const tests = (c.test_requests || []).length;
+    return `<tr onclick="openConsultDetail('${c._filename}')" style="${isNew ? 'background:#fffbeb' : ''}">
+      <td><span style="font-size:12px">${date}</span></td>
+      <td><strong>${c.name || '-'}</strong> ${isNew ? '<span style="font-size:10px;background:#dc2626;color:#fff;padding:1px 5px;border-radius:8px;margin-left:4px">NEW</span>' : ''}</td>
+      <td>${c.school || '-'} / <span class="badge badge-blue">${c.grade || '-'}</span></td>
+      <td style="font-size:12px">${c.parent_tel || c.student_tel || '-'}</td>
+      <td>${c.goal || '-'}</td>
+      <td style="font-size:12px">${(c.hope_days || []).join('·') || '-'}</td>
+      <td style="font-size:12px">${tests > 0 ? tests + '개 선택' : '-'}</td>
+      <td>${isNew ? '<span class="badge badge-warn">미확인</span>' : '<span class="badge badge-ok">확인</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function openConsultDetail(filename) {
+  const c = consultCards.find(x => x._filename === filename);
+  if (!c) return;
+  consultCurrentFile = filename;
+
+  // 확인 처리
+  const seen = JSON.parse(localStorage.getItem('cj_consult_seen') || '[]');
+  if (!seen.includes(filename)) {
+    seen.push(filename);
+    localStorage.setItem('cj_consult_seen', JSON.stringify(seen));
+    renderConsultTable();
+    const badge = document.getElementById('consult-badge');
+    const newCount = consultCards.filter(x => !seen.includes(x._filename)).length;
+    if (badge) { badge.textContent = newCount; badge.style.display = newCount > 0 ? '' : 'none'; }
+  }
+
+  const date = c.submitted_at ? new Date(c.submitted_at).toLocaleString('ko-KR') : '-';
+  document.getElementById('cd-title').textContent = `📋 ${c.name} 학생 상담카드`;
+  document.getElementById('cd-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div class="card" style="padding:14px">
+        <div style="font-size:11px;color:var(--ink3);font-weight:700;margin-bottom:8px">기본 정보</div>
+        <div style="font-size:13px;line-height:2">
+          <div>👤 <strong>${c.name}</strong> (${c.grade || '-'})</div>
+          <div>🏫 ${c.school || '-'}</div>
+          <div>📍 ${c.address || '-'}</div>
+          <div>📅 희망 시작일: ${c.start_date || '-'}</div>
+        </div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="font-size:11px;color:var(--ink3);font-weight:700;margin-bottom:8px">연락처</div>
+        <div style="font-size:13px;line-height:2">
+          <div>👨‍👩‍👧 보호자: ${c.parent_name || '-'}</div>
+          <div>📞 보호자: ${c.parent_tel || '-'}</div>
+          <div>📱 학생: ${c.student_tel || '-'}</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div class="card" style="padding:14px">
+        <div style="font-size:11px;color:var(--ink3);font-weight:700;margin-bottom:8px">학업 현황</div>
+        <div style="font-size:13px;line-height:2">
+          <div>📊 모의고사: ${c.grade1 || '-'} / ${c.mock_score || '-'}</div>
+          <div>📝 내신 중간: ${c.mid_score || '-'}</div>
+          <div>📝 내신 기말: ${c.final_score || '-'}</div>
+          <div>🎯 목표: ${c.goal || '-'}</div>
+        </div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="font-size:11px;color:var(--ink3);font-weight:700;margin-bottom:8px">수업 희망</div>
+        <div style="font-size:13px;line-height:2">
+          <div>📅 희망 요일: ${(c.hope_days||[]).join(', ') || '-'}</div>
+          <div>⏰ 희망 시간: ${c.hope_time || '-'}</div>
+          <div>📚 현재 교재: ${(c.current_books||[]).join(', ') || '-'}</div>
+          <div>📖 이전 교재: ${(c.prev_books||[]).join(', ') || '-'}</div>
+        </div>
+      </div>
+    </div>
+    ${c.study_method || (c.study_styles||[]).length > 0 || (c.worries||[]).length > 0 ? `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div class="card" style="padding:14px">
+        <div style="font-size:11px;color:var(--ink3);font-weight:700;margin-bottom:8px">학습 현황</div>
+        <div style="font-size:13px;line-height:2">
+          <div>📖 학습방법: ${c.study_method || '-'}</div>
+          <div>🧠 성향: ${(c.study_styles||[]).join(', ') || '-'}</div>
+          <div>😟 고민: ${(c.worries||[]).join(', ') || '-'}</div>
+        </div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="font-size:11px;color:var(--ink3);font-weight:700;margin-bottom:8px">📅 상담 희망일</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">${(c.consult_dates||[]).length > 0 ? (c.consult_dates||[]).map(d=>`<span style="background:#eff6ff;color:#1d4ed8;padding:3px 10px;border-radius:8px;font-size:12px;font-weight:700">${d}</span>`).join('') : '<span style="font-size:13px">미선택</span>'}</div>
+      </div>
+    </div>` : ''}
+    ${(c.test_requests||[]).length > 0 ? `
+    <div class="card" style="padding:14px;margin-bottom:16px">
+      <div style="font-size:11px;color:var(--ink3);font-weight:700;margin-bottom:8px">🔬 진단테스트 요청 단원</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${(c.test_requests||[]).map(t=>`<span style="background:#eff6ff;color:#1d4ed8;padding:3px 10px;border-radius:10px;font-size:12px;font-weight:700">${t}</span>`).join('')}</div>
+    </div>` : ''}
+    ${c.prev_academy ? `<div class="card" style="padding:14px;margin-bottom:16px"><div style="font-size:11px;color:var(--ink3);font-weight:700;margin-bottom:6px">이전 학원/과외</div><div style="font-size:13px">${c.prev_academy}</div></div>` : ''}
+    ${c.intro_path ? `<div class="card" style="padding:14px;margin-bottom:16px"><div style="font-size:11px;color:var(--ink3);font-weight:700;margin-bottom:6px">알게 된 경로</div><div style="font-size:13px">${c.intro_path}</div></div>` : ''}
+    ${c.personality ? `<div class="card" style="padding:14px;margin-bottom:16px"><div style="font-size:11px;color:var(--ink3);font-weight:700;margin-bottom:6px">학생 성향/특이사항</div><div style="font-size:13px;line-height:1.7">${c.personality}</div></div>` : ''}
+    ${c.parent_msg ? `<div class="card" style="padding:14px;margin-bottom:16px"><div style="font-size:11px;color:var(--ink3);font-weight:700;margin-bottom:6px">학부모 요청사항</div><div style="font-size:13px;line-height:1.7">${c.parent_msg}</div></div>` : ''}
+    <div style="font-size:11px;color:var(--ink3);text-align:right">접수일시: ${date}</div>
+  `;
+  document.getElementById('modal-consult-detail').style.display = 'flex';
+}
+
+function consultMarkDone() {
+  if (!consultCurrentFile) return;
+  const seen = JSON.parse(localStorage.getItem('cj_consult_seen') || '[]');
+  if (!seen.includes(consultCurrentFile)) seen.push(consultCurrentFile);
+  localStorage.setItem('cj_consult_seen', JSON.stringify(seen));
+  document.getElementById('modal-consult-detail').style.display = 'none';
+  renderConsultTable();
+}
+
+function consultExportCSV() {
+  if (consultCards.length === 0) { alert('데이터가 없습니다'); return; }
+  const headers = ['접수일시','이름','학교','학년','보호자','보호자연락처','학생연락처','목표','희망요일','희망시간','모의고사등급','현재교재','진단테스트'];
+  const rows = consultCards.map(c => [
+    c.submitted_at ? new Date(c.submitted_at).toLocaleString('ko-KR') : '',
+    c.name, c.school, c.grade, c.parent_name, c.parent_tel, c.student_tel,
+    c.goal, (c.hope_days||[]).join('/'), c.hope_time, c.grade1,
+    (c.current_books||[]).join('/'), (c.test_requests||[]).join('/')
+  ]);
+  const csv = [headers, ...rows].map(r => r.map(v => `"${(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `상담카드_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+}
+
+document.getElementById('modal-consult-detail').addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
+
 <\/script>
 </body>
 </html>

@@ -5718,12 +5718,33 @@ function saveGithubSettings(){
 async function testGithubConnection(){
   const url = document.getElementById('gh-workers-url').value.trim();
   const res = document.getElementById('gh-test-result');
-  res.style.display='block'; res.textContent='연결 테스트 중...'; res.style.background='#f0f4f8'; res.style.color='#4a4a6a';
+  res.style.display='block'; res.textContent='연결 테스트 중...'; res.style.background='#f0f4f8'; res.style.color='#4a4a6a'; res.style.whiteSpace='pre-line';
+  if(!url){ res.textContent='⚠ Workers URL을 먼저 입력해주세요'; res.style.background='#fdf0d8'; res.style.color='#8a5000'; return; }
   try{
-    const r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({date:'test',student:'test'})});
-    if(r.ok||r.status===400){ res.textContent='✅ 연결 성공!'; res.style.background='#d4f0e0'; res.style.color='#0d6b3b'; }
-    else throw new Error('status '+r.status);
-  }catch(e){ res.textContent='❌ 연결 실패: '+e.message; res.style.background='#fde8e8'; res.style.color='#b01515'; }
+    // GET 헬스체크 (체크리스트 Worker v2 이상)
+    const r = await fetch(url, { method:'GET' });
+    const j = await r.json().catch(()=>({}));
+    if(r.ok && j.ok){
+      res.textContent = '✅ 연결 성공!\nWorkers 정상 작동 중입니다.';
+      res.style.background='#d4f0e0'; res.style.color='#0d6b3b'; return;
+    }
+    throw new Error('status '+r.status);
+  }catch(e){
+    // POST 폴백 (구버전 Worker)
+    try{
+      const r2 = await fetch(url,{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({type:'checklist',date:'2000-01-01',student:'연결테스트'})
+      });
+      if(r2.ok||r2.status===400||r2.status===500){
+        res.textContent = '✅ 연결 성공! (체크리스트 Worker)\n※ Worker를 최신 버전으로 교체하면 더 안정적입니다.';
+        res.style.background='#d4f0e0'; res.style.color='#0d6b3b';
+      } else throw new Error('status '+r2.status);
+    }catch(e2){
+      res.textContent = '❌ 연결 실패: '+e2.message+'\n\n해결 방법:\n1. Cloudflare Workers → 최신 worker.js 재배포\n2. Worker URL 주소 확인\n3. 환경변수(GITHUB_TOKEN 등) 재확인';
+      res.style.background='#fde8e8'; res.style.color='#b01515';
+    }
+  }
 }
 function updateSyncStatus(){
   const dot = document.getElementById('sync-dot');
